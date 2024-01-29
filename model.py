@@ -191,6 +191,9 @@ class UNet3DModel(nn.Module):
 
     assert m_idx == len(modules)
 
+    # sigmoid activation to encourage output in [0, 1]
+    h = torch.sigmoid(h)
+
     return h
 
 

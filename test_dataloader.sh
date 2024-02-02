@@ -18,4 +18,8 @@
 module load profile/deeplrn
 source ~/ddpm/bin/activate
 
-python train.py -j galsmear
+python dataloader.py --num_workers 0
+python dataloader.py --num_workers 1
+python dataloader.py --num_workers 2
+python dataloader.py --num_workers 3
+python dataloader.py --num_workers 4

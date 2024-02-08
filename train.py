@@ -5,6 +5,7 @@ from torch.utils.data import TensorDataset, DataLoader
 from torch.nn.parallel import DistributedDataParallel, DataParallel
 from utils import get_sigma_time, get_sample_time, get_config
 from model import UNet3DModel
+from dataloader import GalaxyDataset
 torch.backends.cudnn.benchmark = True
 import os
 import logging
@@ -14,7 +15,6 @@ from torch_ema import ExponentialMovingAverage
 
 config = get_config('./config.json')
 Nside = config.data.image_size
-#DEVICE = config.device
 DEVICE = torch.device('cuda:0') if torch.cuda.is_available() else torch.device('cpu')
 
 # Create directory structure
@@ -67,9 +67,6 @@ def train_one_epoch():
         counter += 1
     return avg_loss/counter
 
-
-
-
 # Initialize score model
 model = DataParallel(UNet3DModel(config))
 model = model.to(DEVICE)
@@ -86,36 +83,32 @@ ema = ExponentialMovingAverage(model.parameters(), decay=config.model.ema_rate)
 init_epoch = 0
 
 # Check for existing checkpoint
-checkpoint_path = os.path.join(checkpoint_dir, 'checkpoint.pth')
-if os.path.isfile(checkpoint_path):
-    loaded_state = torch.load(checkpoint_path, map_location=DEVICE)
-    optimizer.load_state_dict(loaded_state['optimizer'])
-    model.load_state_dict(loaded_state['model'], strict=False)
-    ema.load_state_dict(loaded_state['ema'])
-    init_epoch = int(loaded_state['epoch'])
-    logging.warning(f"Loaded checkpoint from {checkpoint_path}.")
-else:
-    logging.warning(f"No checkpoint found at {checkpoint_path}. Starting from scratch.")
+# don't worry about this for now
+# checkpoint_path = os.path.join(checkpoint_dir, 'checkpoint.pth')
+# if os.path.isfile(checkpoint_path):
+#     loaded_state = torch.load(checkpoint_path, map_location=DEVICE)
+#     optimizer.load_state_dict(loaded_state['optimizer'])
+#     model.load_state_dict(loaded_state['model'], strict=False)
+#     ema.load_state_dict(loaded_state['ema'])
+#     init_epoch = int(loaded_state['epoch'])
+#     logging.warning(f"Loaded checkpoint from {checkpoint_path}.")
+# else:
+#     logging.warning(f"No checkpoint found at {checkpoint_path}. Starting from scratch.")
 
 
 # Build pytorch dataloaders and apply data preprocessing
-input_data = np.float32(np.load(config.data.path + 'quijote128_hyper_z0_train.npy'))
-label_data = np.float32(np.load(config.data.path + 'quijote128_hyper_z127_train.npy'))
-label_data = (label_data - np.mean(label_data, axis=(1,2,3), keepdims=True))/np.std(label_data, axis=(1,2,3), keepdims=True)
-
-input_data = torch.from_numpy(input_data)
-label_data = torch.from_numpy(label_data)
-input_data = torch.unsqueeze(input_data, dim=1)
-label_data = torch.unsqueeze(label_data, dim=1)
-train_dataset = TensorDataset(input_data, label_data)
-training_loader = DataLoader(train_dataset, config.training.batch_size, shuffle=True, num_workers=0)#, pin_memory=True)
-
+training_dataset = GalaxyDataset(datadir='../diff_data/galaxies/', job_type='galsmear', train_or_val='training')
+# validation_dataset = GalaxyDataset(datadir='../diff_data/galaxies/', job_type='galsmear', train_or_val='validation')
+training_loader = DataLoader(training_dataset, config.training.batch_size, shuffle=True, num_workers=1)
+# validation_loader = DataLoader(validation_dataset, config.training.batch_size, shuffle=True, num_workers=args.num_workers)
 
 model.train(True)
 
 logging.info('Starting training loop.')
 for epoch in range(init_epoch, config.training.n_epochs + 1):
     
+    # TODO pass arguments to train_one_epoch
+    # rather than using global variables
     avg_loss = train_one_epoch()
     
     if epoch % 10 == 0:

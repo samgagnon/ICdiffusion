@@ -7,12 +7,13 @@ from utils import get_sigma_time, get_sample_time, VESDE, get_config
 from model import UNet3DModel
 import matplotlib.pyplot as plt
 from torch_ema import ExponentialMovingAverage
+from dataloader import GalaxyDataset
 import logging
 import os
 import sys
 
-task_id = int(sys.argv[1]) 
-cosmo_dir = str(sys.argv[2]) 
+task_id = 1
+cosmo_dir = 'fiducial/'
 
 config = get_config('./config.json')
 Nside = config.data.image_size
@@ -29,13 +30,9 @@ sample_time = get_sample_time(config.model.sampling_eps, config.model.T)
 data_path = config.model.workdir + cosmo_dir
 
 
-# Build pytorch dataloaders
-input_data = np.float32(np.load(data_path + 'observation.npy'))
-label_data = np.float32(np.load(data_path + 'truth.npy'))
-input_data = torch.from_numpy(input_data).to(DEVICE)
-label_data = torch.from_numpy(label_data).to(DEVICE)
-input_data = torch.unsqueeze(input_data, dim=1)
-label_data = torch.unsqueeze(label_data, dim=1)
+# Build pytorch dataloaders and apply data preprocessing
+validation_dataset = GalaxyDataset(datadir='../diff_data/galaxies/', job_type='galsmear', train_or_val='validation')
+validation_loader = DataLoader(validation_dataset, config.training.batch_size, shuffle=True, num_workers=1)
 
 # Initialize score model
 model = UNet3DModel(config)
@@ -74,8 +71,14 @@ def one_step(x, t):
     x, x_mean = sde.update_fn(x, t_vec, model_output=model_output)
     return x, x_mean
 
-input_data = torch.tile(input_data, dims=(config.sampling.batch_size, 1, 1, 1, 1))
+input_data = validation_dataset[0][0].to(DEVICE)
+np.save(data_path + 'input_data{}.npy'.format(task_id), np.array(input_data.clone().detach().cpu().numpy()))
+label_data = validation_dataset[0][1].to(DEVICE)
+np.save(data_path + 'label_data{}.npy'.format(task_id), np.array(label_data.clone().detach().cpu().numpy()))
+input_data = torch.tile(input_data, dims=(config.sampling.batch_size, 1, 1, 1, 1)) # shape is too large
 shape = (config.sampling.batch_size, 1, Nside, Nside, Nside)
+
+print(input_data.shape, label_data.shape)
 
 samples = []
 print('Sampling begins.')

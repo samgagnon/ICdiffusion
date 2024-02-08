@@ -45,12 +45,13 @@ class GalaxyDataset(TensorDataset):
                 # read labels from seeds 1-7
                 self.labels += [np.load(label_dir+file)]
             self.data = torch.from_numpy(np.stack(self.data, axis=0))
-            print(self.data.shape)
             self.labels = torch.from_numpy(np.stack(self.labels, axis=0))
             # unsqueeze channel dimension
             self.data = torch.unsqueeze(self.data, dim=1)
-            print(self.data.shape)
             self.labels = torch.unsqueeze(self.labels, dim=1)
+            # convert datatype to float
+            self.data = self.data.float()
+            self.labels = self.labels.float()
         # apply transform if necessary
         self.transform = transform
 

@@ -192,7 +192,7 @@ class UNet3DModel(nn.Module):
     assert m_idx == len(modules)
 
     # sigmoid activation to encourage output in [0, 1]
-    h = torch.sigmoid(h)
+    # h = torch.sigmoid(h) this seems to make things worse
 
     return h
 

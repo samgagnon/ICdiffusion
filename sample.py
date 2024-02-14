@@ -12,7 +12,15 @@ import logging
 import os
 import sys
 
-task_id = 1
+import argparse
+
+parser = argparse.ArgumentParser(description='Train the model')
+parser.add_argument('-j', default='galpure', type=str, help='job type')
+parser.add_argument('--num_workers', default=1, type=int, help='number of workers for dataloader')
+parser.add_argument('--task_id', default='training', type=str, help='task id')
+args = parser.parse_args()
+
+task_id = args.task_id
 cosmo_dir = 'fiducial/'
 
 config = get_config('./config.json')
@@ -29,14 +37,23 @@ sample_time = get_sample_time(config.model.sampling_eps, config.model.T)
 
 data_path = config.model.workdir + cosmo_dir
 
-
 # Build pytorch dataloaders and apply data preprocessing
-validation_dataset = GalaxyDataset(datadir='../diff_data/galaxies/', job_type='galsmear', train_or_val='validation')
-validation_loader = DataLoader(validation_dataset, config.training.batch_size, shuffle=True, num_workers=1)
+# validation_dataset = GalaxyDataset(datadir='../diff_data/galaxies/', job_type='galsmear', train_or_val='validation')
+# validation_loader = DataLoader(validation_dataset, config.training.batch_size, shuffle=True, num_workers=1)
+
+scratch_ddir = '/leonardo_scratch/large/userexternal/sgagnonh/diff_data/diff_data/galaxies/'
+if task_id == 'training':
+    validation_dataset = GalaxyDataset(datadir=scratch_ddir, job_type=args.j, train_or_val='training', single_nf=0.4)
+    validation_loader = DataLoader(validation_dataset, config.sampling.batch_size, shuffle=False, num_workers=args.num_workers)
+elif task_id == 'validation':
+    validation_dataset = GalaxyDataset(datadir=scratch_ddir, job_type=args.j, train_or_val='validation', single_nf=0.4)
+    validation_loader = DataLoader(validation_dataset, config.sampling.batch_size, shuffle=False, num_workers=args.num_workers)
+else:
+    print('Invalid task_id')
+    sys.exit(1)
 
 # Initialize score model
-model = UNet3DModel(config)
-#model = DataParallel(model)
+model = DataParallel(UNet3DModel(config))
 model = model.to(DEVICE)
 
 # Define optimizer
@@ -72,13 +89,11 @@ def one_step(x, t):
     return x, x_mean
 
 input_data = validation_dataset[0][0].to(DEVICE)
-np.save(data_path + 'input_data{}.npy'.format(task_id), np.array(input_data.clone().detach().cpu().numpy()))
+np.save(data_path + f'input_data_{task_id}.npy', np.array(input_data.clone().detach().cpu().numpy()))
 label_data = validation_dataset[0][1].to(DEVICE)
-np.save(data_path + 'label_data{}.npy'.format(task_id), np.array(label_data.clone().detach().cpu().numpy()))
-input_data = torch.tile(input_data, dims=(config.sampling.batch_size, 1, 1, 1, 1)) # shape is too large
+np.save(data_path + f'label_data_{task_id}.npy', np.array(label_data.clone().detach().cpu().numpy()))
+input_data = torch.tile(input_data, dims=(config.sampling.batch_size, 1, 1, 1, 1))
 shape = (config.sampling.batch_size, 1, Nside, Nside, Nside)
-
-print(input_data.shape, label_data.shape)
 
 samples = []
 print('Sampling begins.')
@@ -90,5 +105,5 @@ for j in tqdm(range(config.sampling.num_samples//config.sampling.batch_size)):
             t = timesteps[i]
             x, x_mean = one_step(x, t)
         samples.append(x_mean.detach().cpu().numpy())
-    np.save(data_path + 'sample{}.npy'.format(task_id), np.array(samples))
-np.save(data_path + 'sample{}.npy'.format(task_id), np.array(samples))
+    np.save(data_path + f'sample_{task_id}.npy', np.array(samples))
+np.save(data_path + f'sample_{task_id}.npy', np.array(samples))

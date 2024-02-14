@@ -1,12 +1,12 @@
 #!/bin/bash
 #SBATCH -A IscrC_ION-DIFF
 #SBATCH -p boost_usr_prod
-#SBATCH --time 12:00:00     # format: HH:MM:SS
+#SBATCH --time 24:00:00     # format: HH:MM:SS
 #SBATCH -N 1                # 1 node
-#SBATCH --ntasks-per-node=4 # 4 tasks out of 32
-#SBATCH --gres=gpu:1        # 4 gpus per node out of 4
-#SBATCH --mem=63000          # memory per node out of 494000MB
-#SBATCH --job-name=train_ddpm
+#SBATCH --ntasks-per-node=2 # 4 tasks out of 32
+#SBATCH --gres=gpu:2        # 4 gpus per node out of 4
+#SBATCH --mem=63000         # memory per node out of 494000MB
+#SBATCH --job-name=test_dataloader
 #SBATCH --mail-user=samuel.gagnonhartman@sns.it
 #SBATCH --mail-type=BEGIN
 #SBATCH --mail-type=END
@@ -18,4 +18,4 @@
 module load profile/deeplrn
 source ~/ddpm/bin/activate
 
-python train.py -j galsmear
+python train.py -j galsmear --num_workers 4

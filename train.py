@@ -1,7 +1,6 @@
-import numpy as np
 import torch
 from tqdm import tqdm
-from torch.utils.data import TensorDataset, DataLoader
+from torch.utils.data import DataLoader
 from torch.nn.parallel import DistributedDataParallel, DataParallel
 from utils import get_sigma_time, get_sample_time, get_config
 from model import UNet3DModel
@@ -11,11 +10,18 @@ import os
 import logging
 from torch_ema import ExponentialMovingAverage
 
+import argparse
 
+parser = argparse.ArgumentParser(description='Train the model')
+parser.add_argument('-j', default='galpure', type=str, help='job type')
+parser.add_argument('--num_workers', default=1, type=int, help='number of workers for dataloader')
+args = parser.parse_args()
 
 config = get_config('./config.json')
 Nside = config.data.image_size
-DEVICE = torch.device('cuda:0') if torch.cuda.is_available() else torch.device('cpu')
+# for multi-gpu training
+# original read cuda:0
+DEVICE = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
 # Create directory structure
 checkpoint_dir = os.path.join(config.model.workdir, "checkpoints")
@@ -97,10 +103,11 @@ init_epoch = 0
 
 
 # Build pytorch dataloaders and apply data preprocessing
-training_dataset = GalaxyDataset(datadir='../diff_data/galaxies/', job_type='galsmear', train_or_val='training')
-# validation_dataset = GalaxyDataset(datadir='../diff_data/galaxies/', job_type='galsmear', train_or_val='validation')
-training_loader = DataLoader(training_dataset, config.training.batch_size, shuffle=True, num_workers=1)
-# validation_loader = DataLoader(validation_dataset, config.training.batch_size, shuffle=True, num_workers=args.num_workers)
+scratch_ddir = '/leonardo_scratch/large/userexternal/sgagnonh/diff_data/diff_data/galaxies/'
+training_dataset = GalaxyDataset(datadir=scratch_ddir, job_type=args.j, train_or_val='training', single_nf=0.4)
+training_loader = DataLoader(training_dataset, config.training.batch_size, shuffle=True, num_workers=args.num_workers)
+# validation_dataset = GalaxyDataset(datadir=scratch_ddir, job_type='galsmear', train_or_val='validation', single_ion_eff=True)
+# validation_loader = DataLoader(validation_dataset, config.training.batch_size, shuffle=True, num_workers=1)
 
 model.train(True)
 
@@ -122,7 +129,6 @@ for epoch in range(init_epoch, config.training.n_epochs + 1):
         os.path.join(checkpoint_dir, f'checkpoint.pth')
         )
 
-
-
-
+logging.info('Training complete.')
+gfile_stream.close()
 

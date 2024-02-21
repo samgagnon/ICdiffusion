@@ -18,18 +18,21 @@ parser = argparse.ArgumentParser(description='Train the model')
 parser.add_argument('-j', default='galpure', type=str, help='job type')
 parser.add_argument('--num_workers', default=1, type=int, help='number of workers for dataloader')
 parser.add_argument('--task_id', default='training', type=str, help='task id')
+parser.add_argument('--num_bins', default=1, type=int, help='number of bins')
 args = parser.parse_args()
 
 task_id = args.task_id
 cosmo_dir = 'fiducial/'
 
 config = get_config('./config.json')
+num_bins = args.num_bins
+config.data.num_input_channels = int(args.num_bins * 2 + 1)
 Nside = config.data.image_size
 #DEVICE = config.device
 DEVICE = torch.device('cuda:0') if torch.cuda.is_available() else torch.device('cpu')
 
 # Create directory structure
-checkpoint_dir = os.path.join(config.model.workdir, "checkpoints")
+checkpoint_dir = os.path.join(config.model.workdir, f'checkpoints/galbin_{num_bins}')
 os.makedirs(checkpoint_dir, exist_ok=True)
 
 sigma_time = get_sigma_time(config.model.sigma_min, config.model.sigma_max)
@@ -41,7 +44,7 @@ data_path = config.model.workdir + cosmo_dir
 # validation_dataset = GalaxyDataset(datadir='../diff_data/galaxies/', job_type='galsmear', train_or_val='validation')
 # validation_loader = DataLoader(validation_dataset, config.training.batch_size, shuffle=True, num_workers=1)
 
-scratch_ddir = '/leonardo_scratch/large/userexternal/sgagnonh/diff_data/diff_data/galaxies/'
+scratch_ddir = f'/leonardo_scratch/large/userexternal/sgagnonh/diff_data/galbin_{num_bins}/'
 if task_id == 'training':
     validation_dataset = GalaxyDataset(datadir=scratch_ddir, job_type=args.j, train_or_val='training', single_nf=0.4)
     validation_loader = DataLoader(validation_dataset, config.sampling.batch_size, shuffle=False, num_workers=args.num_workers)

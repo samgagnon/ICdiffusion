@@ -63,8 +63,8 @@ class GalaxyDataset(TensorDataset):
         lya = torch.from_numpy(np.stack(np.load(lya), axis=0))
         labels = torch.from_numpy(np.stack(np.load(labels), axis=0))
         # unsqueeze channel dimension
-        muv = torch.unsqueeze(muv, dim=0)
-        lya = torch.unsqueeze(lya, dim=0)
+        # muv = torch.unsqueeze(muv, dim=0)
+        # lya = torch.unsqueeze(lya, dim=0)
         data = torch.cat((muv, lya), dim=0)
         labels = torch.unsqueeze(labels, dim=0)
         # convert datatype to float
@@ -97,11 +97,12 @@ if __name__ == '__main__':
     from argparse import ArgumentParser
     parser = ArgumentParser()
     parser.add_argument('--num_workers', type=int, default=1)
+    parser.add_argument('--num_bins', type=int, default=1)
     args = parser.parse_args()
     
     # create dataloaders
     t1 = time()
-    scratch_ddir = '/leonardo_scratch/large/userexternal/sgagnonh/diff_data/diff_data/galaxies/'
+    scratch_ddir = f'/leonardo_scratch/large/userexternal/sgagnonh/diff_data/galbin_{args.num_bins}/'
     training_dataset = GalaxyDataset(datadir=scratch_ddir, job_type='galsmear', train_or_val='training', single_nf=0.4)
     validation_dataset = GalaxyDataset(datadir=scratch_ddir, job_type='galsmear', train_or_val='validation', single_nf=0.4)
     training_loader = DataLoader(training_dataset, config.training.batch_size, shuffle=True, num_workers=args.num_workers)
@@ -121,6 +122,9 @@ if __name__ == '__main__':
         break
     t3 = time()
     print(f'{t3-t2} seconds to load first batch')
+
+    # modify config for testing
+    config.data.num_input_channels = int(args.num_bins * 2 + 1)
 
     # test network training
     model = DataParallel(UNet3DModel(config))

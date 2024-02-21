@@ -20,7 +20,9 @@ source ~/ddpm/bin/activate
 
 # export 'PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:512'
 
-python dataloader.py --num_workers 1
-python dataloader.py --num_workers 2
-python dataloader.py --num_workers 3
-python dataloader.py --num_workers 4
+# python dataloader.py --num_workers 1 --num_bins 1
+python dataloader.py --num_workers 2 --num_bins 1
+python dataloader.py --num_workers 2 --num_bins 2
+python dataloader.py --num_workers 2 --num_bins 3
+# python dataloader.py --num_workers 3 --num_bins 1
+# python dataloader.py --num_workers 4 --num_bins 1

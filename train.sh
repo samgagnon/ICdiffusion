@@ -18,4 +18,4 @@
 module load profile/deeplrn
 source ~/ddpm/bin/activate
 
-python train.py -j galsmear --num_workers 4
+python train.py -j galsmear --num_workers 2 --num_bins 1

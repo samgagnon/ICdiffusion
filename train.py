@@ -15,22 +15,26 @@ import argparse
 parser = argparse.ArgumentParser(description='Train the model')
 parser.add_argument('-j', default='galpure', type=str, help='job type')
 parser.add_argument('--num_workers', default=1, type=int, help='number of workers for dataloader')
+parser.add_argument('--num_bins', default=1, type=int, help='number of bins')
 args = parser.parse_args()
 
 config = get_config('./config.json')
 Nside = config.data.image_size
+
+# set number of input channels
+num_bins = args.num_bins
+config.data.num_input_channels = int(args.num_bins * 2 + 1)
 # for multi-gpu training
 # original read cuda:0
 DEVICE = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-
 # Create directory structure
-checkpoint_dir = os.path.join(config.model.workdir, "checkpoints")
+checkpoint_dir = os.path.join(config.model.workdir, f'checkpoints/galbin_{num_bins}')
 os.makedirs(checkpoint_dir, exist_ok=True)
 
 sigma_time = get_sigma_time(config.model.sigma_min, config.model.sigma_max)
 sample_time = get_sample_time(config.model.sampling_eps, config.model.T)
 
-gfile_stream = open(os.path.join(config.model.workdir, 'stdout.txt'), 'w')
+gfile_stream = open(os.path.join(config.model.workdir, f'stdout_{num_bins}.txt'), 'w')
 handler = logging.StreamHandler(gfile_stream)
 formatter = logging.Formatter('%(levelname)s - %(filename)s - %(asctime)s - %(message)s')
 handler.setFormatter(formatter)
@@ -150,11 +154,11 @@ init_epoch = 0
 
 
 # Build pytorch dataloaders and apply data preprocessing
-scratch_ddir = '/leonardo_scratch/large/userexternal/sgagnonh/diff_data/diff_data/galaxies/'
+scratch_ddir = f'/leonardo_scratch/large/userexternal/sgagnonh/diff_data/galbin_{num_bins}/'
 training_dataset = GalaxyDataset(datadir=scratch_ddir, job_type=args.j, train_or_val='training', single_nf=0.4)
 training_loader = DataLoader(training_dataset, config.training.batch_size, shuffle=True, num_workers=args.num_workers)
-validation_dataset = GalaxyDataset(datadir=scratch_ddir, job_type=args.j, train_or_val='validation', single_nf=0.4)
-validation_loader = DataLoader(validation_dataset, config.training.batch_size, shuffle=True, num_workers=args.num_workers)
+validation_dataset = GalaxyDataset(datadir=scratch_ddir, job_type='galsmear', train_or_val='validation', single_nf=0.4)
+validation_loader = DataLoader(validation_dataset, config.training.batch_size, shuffle=True, num_workers=1)
 
 model.train(True)
 

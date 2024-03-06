@@ -29,7 +29,7 @@
         "embedding_type": "fourier",
         "sampling_eps": 1e-5,
         "T": 1.0,
-        "workdir": "run/",
+        "workdir": "/leonardo_scratch/large/userexternal/sgagnonh/run/",
         "ema_rate": 0.999,
         "normalization": "GroupNorm",
         "nonlinearity": "swish",

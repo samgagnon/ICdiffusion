@@ -22,23 +22,23 @@ parser.add_argument('--num_bins', default=1, type=int, help='number of bins')
 args = parser.parse_args()
 
 task_id = args.task_id
-cosmo_dir = 'fiducial/'
 
 config = get_config('./config.json')
 num_bins = args.num_bins
-config.data.num_input_channels = int(args.num_bins * 2 + 1)
+cosmo_dir = f'fiducial/galbin_{num_bins}/'
+config.data.num_input_channels = int(num_bins * 2 + 1)
 Nside = config.data.image_size
 #DEVICE = config.device
 DEVICE = torch.device('cuda:0') if torch.cuda.is_available() else torch.device('cpu')
 
 # Create directory structure
 checkpoint_dir = os.path.join(config.model.workdir, f'checkpoints/galbin_{num_bins}')
+data_path = config.model.workdir + cosmo_dir
 os.makedirs(checkpoint_dir, exist_ok=True)
+os.makedirs(data_path, exist_ok=True)
 
 sigma_time = get_sigma_time(config.model.sigma_min, config.model.sigma_max)
 sample_time = get_sample_time(config.model.sampling_eps, config.model.T)
-
-data_path = config.model.workdir + cosmo_dir
 
 # Build pytorch dataloaders and apply data preprocessing
 # validation_dataset = GalaxyDataset(datadir='../diff_data/galaxies/', job_type='galsmear', train_or_val='validation')
@@ -72,7 +72,7 @@ ema = ExponentialMovingAverage(model.parameters(), decay=config.model.ema_rate)
 sde = VESDE(config.model.sigma_min, config.model.sigma_max, config.model.num_scales, config.model.T, config.model.sampling_eps)
 
 # Check for existing checkpoint
-checkpoint_path = os.path.join(checkpoint_dir, 'checkpoint.pth')
+checkpoint_path = os.path.join(checkpoint_dir, 'best_checkpoint.pth')
 if os.path.isfile(checkpoint_path):
     loaded_state = torch.load(checkpoint_path, map_location=DEVICE)
     optimizer.load_state_dict(loaded_state['optimizer'])

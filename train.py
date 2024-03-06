@@ -43,13 +43,13 @@ logger.addHandler(handler)
 logger.setLevel('INFO')
 
 class EarlyStopping:
-    def __init__(self, patience=5, verbose=False, delta=0, checkpoint_path=checkpoint_dir):
+    def __init__(self, patience=10, verbose=False, delta=0, checkpoint_path=checkpoint_dir):
         self.patience = patience
         self.verbose = verbose
         self.counter = 0
         self.best_score = None
         self.early_stop = False
-        self.val_loss_min = -1e10
+        self.val_loss_min = 1e10
         self.delta = delta
         self.checkpoint_path = checkpoint_path
 
@@ -59,6 +59,7 @@ class EarlyStopping:
 
         if self.best_score is None:
             self.best_score = score
+            self.delta = self.best_score * 0.1
             self.save_checkpoint(val_loss, model, optimizer, ema, epoch)
         elif score > self.best_score + self.delta:
             self.counter += 1
@@ -67,6 +68,7 @@ class EarlyStopping:
                 self.early_stop = True
         else:
             self.best_score = score
+            self.delta = self.best_score * 0.1
             self.save_checkpoint(val_loss, model, optimizer, ema, epoch)
             self.counter = 0
 
@@ -162,7 +164,7 @@ validation_loader = DataLoader(validation_dataset, config.training.batch_size, s
 
 model.train(True)
 
-early_stopping = EarlyStopping(patience=5, verbose=True, checkpoint_path=checkpoint_dir)
+early_stopping = EarlyStopping(patience=10, verbose=True, checkpoint_path=checkpoint_dir)
 
 logging.info('Starting training loop.')
 for epoch in range(init_epoch, config.training.n_epochs + 1):

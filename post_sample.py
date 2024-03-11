@@ -25,7 +25,7 @@ task_id = args.task_id
 
 config = get_config('./config.json')
 num_bins = args.num_bins
-cosmo_dir = f'fiducial/galbin_{args.num_bins}/'
+cosmo_dir = f'fiducial/galbin_{args.num_bins}/sgd/'
 config.data.num_input_channels = int(args.num_bins * 2 + 1)
 Nside = config.data.image_size
 #DEVICE = config.device
@@ -72,7 +72,7 @@ ema = ExponentialMovingAverage(model.parameters(), decay=config.model.ema_rate)
 sde = VESDE(config.model.sigma_min, config.model.sigma_max, config.model.num_scales, config.model.T, config.model.sampling_eps)
 
 # Check for existing checkpoint
-checkpoint_path = os.path.join(checkpoint_dir, 'best_checkpoint.pth')
+checkpoint_path = os.path.join(checkpoint_dir, f'best_sgd_checkpoint_0.4.pth')
 if os.path.isfile(checkpoint_path):
     loaded_state = torch.load(checkpoint_path, map_location=DEVICE)
     optimizer.load_state_dict(loaded_state['optimizer'])

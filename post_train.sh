@@ -18,6 +18,6 @@
 module load profile/deeplrn
 source ~/ddpm/bin/activate
 
-python train.py -j galsmear --num_workers 2 --num_bins 3
-python sample.py -j galsmear --num_workers 2 --num_bins 3 --task_id training
-python sample.py -j galsmear --num_workers 2 --num_bins 3 --task_id validation
+python post_train.py -j galsmear --num_workers 2 --num_bins 1 --nf 0.4
+python post_train.py -j galsmear --num_workers 2 --num_bins 2 --nf 0.4
+python post_train.py -j galsmear --num_workers 2 --num_bins 3 --nf 0.4

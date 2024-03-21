@@ -60,13 +60,7 @@ model = DataParallel(UNet3DModel(config))
 model = model.to(DEVICE)
 
 # Define optimizer
-optimizer = torch.optim.Adam(
-        model.parameters(),
-        lr=config.optim.lr,
-        betas=(config.optim.beta1, 0.999),
-        eps=config.optim.eps,
-        weight_decay=config.optim.weight_decay                   
-        )
+optimizer = torch.optim.SGD(model.parameters(), lr=config.optim.lr, momentum=0.9, weight_decay=config.optim.weight_decay)
 ema = ExponentialMovingAverage(model.parameters(), decay=config.model.ema_rate)
 
 sde = VESDE(config.model.sigma_min, config.model.sigma_max, config.model.num_scales, config.model.T, config.model.sampling_eps)

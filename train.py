@@ -9,6 +9,8 @@ torch.backends.cudnn.benchmark = True
 import os
 import logging
 from torch_ema import ExponentialMovingAverage
+from torch.optim import lr_scheduler
+
 
 import argparse
 
@@ -113,6 +115,7 @@ def train_one_epoch(data_loader, model, optimizer, ema, train_or_val='training')
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), config.optim.grad_clip)
             optimizer.step()
+            scheduler.step(epoch + i / iters)
             ema.update()
         elif train_or_val == 'validation':
             with torch.no_grad():
@@ -138,6 +141,8 @@ optimizer = torch.optim.Adam(
         eps=config.optim.eps,
         weight_decay=config.optim.weight_decay                   
         )
+# Assuming optimizer has been defined
+scheduler = lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=10)
 ema = ExponentialMovingAverage(model.parameters(), decay=config.model.ema_rate)
 init_epoch = 0
 
@@ -165,6 +170,8 @@ validation_loader = DataLoader(validation_dataset, config.training.batch_size, s
 model.train(True)
 
 early_stopping = EarlyStopping(patience=10, verbose=True, checkpoint_path=checkpoint_dir)
+
+iters = len(training_dataset)
 
 logging.info('Starting training loop.')
 for epoch in range(init_epoch, config.training.n_epochs + 1):

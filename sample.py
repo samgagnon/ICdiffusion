@@ -46,10 +46,10 @@ sample_time = get_sample_time(config.model.sampling_eps, config.model.T)
 
 scratch_ddir = f'/leonardo_scratch/large/userexternal/sgagnonh/diff_data/galbin_{num_bins}/'
 if task_id == 'training':
-    validation_dataset = GalaxyDataset(datadir=scratch_ddir, job_type=args.j, train_or_val='training', single_nf=0.4)
+    validation_dataset = GalaxyDataset(datadir=scratch_ddir, job_type=args.j, train_or_val='training')#, single_nf=0.4)
     validation_loader = DataLoader(validation_dataset, config.sampling.batch_size, shuffle=False, num_workers=args.num_workers)
 elif task_id == 'validation':
-    validation_dataset = GalaxyDataset(datadir=scratch_ddir, job_type=args.j, train_or_val='validation', single_nf=0.4)
+    validation_dataset = GalaxyDataset(datadir=scratch_ddir, job_type=args.j, train_or_val='validation')#, single_nf=0.4)
     validation_loader = DataLoader(validation_dataset, config.sampling.batch_size, shuffle=False, num_workers=args.num_workers)
 else:
     print('Invalid task_id')

@@ -134,6 +134,7 @@ model = model.to(DEVICE)
 # for this problem. We use Adam to get close to the solution and
 # then switch to SGD to get the best solution.
 # optimizer = torch.optim.SGD(model.parameters(), lr=config.optim.lr, momentum=0.9, weight_decay=config.optim.weight_decay)
+# switch to AdamW to match the flatiron implementation https://arxiv.org/pdf/2403.10648.pdf
 optimizer = torch.optim.Adam(
         model.parameters(),
         lr=config.optim.lr,
@@ -162,14 +163,16 @@ init_epoch = 0
 
 # Build pytorch dataloaders and apply data preprocessing
 scratch_ddir = f'/leonardo_scratch/large/userexternal/sgagnonh/diff_data/galbin_{num_bins}/'
-training_dataset = GalaxyDataset(datadir=scratch_ddir, job_type=args.j, train_or_val='training', single_nf=0.4)
+# training_dataset = GalaxyDataset(datadir=scratch_ddir, job_type=args.j, train_or_val='training', single_nf=0.4)
+training_dataset = GalaxyDataset(datadir=scratch_ddir, job_type=args.j, train_or_val='training')
 training_loader = DataLoader(training_dataset, config.training.batch_size, shuffle=True, num_workers=args.num_workers)
-validation_dataset = GalaxyDataset(datadir=scratch_ddir, job_type='galsmear', train_or_val='validation', single_nf=0.4)
+# validation_dataset = GalaxyDataset(datadir=scratch_ddir, job_type='galsmear', train_or_val='validation', single_nf=0.4)
+validation_dataset = GalaxyDataset(datadir=scratch_ddir, job_type='galsmear', train_or_val='validation')
 validation_loader = DataLoader(validation_dataset, config.training.batch_size, shuffle=True, num_workers=1)
 
 model.train(True)
 
-early_stopping = EarlyStopping(patience=10, verbose=True, checkpoint_path=checkpoint_dir)
+early_stopping = EarlyStopping(patience=100, verbose=True, checkpoint_path=checkpoint_dir)
 
 iters = len(training_dataset)
 

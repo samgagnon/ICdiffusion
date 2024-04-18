@@ -1,3 +1,9 @@
+"""
+Produces directory of samples from trained model,
+as well as the input and label data used to generate the samples.
+"""
+
+
 import numpy as np
 import torch
 from tqdm import tqdm
@@ -36,6 +42,9 @@ checkpoint_dir = os.path.join(config.model.workdir, f'checkpoints/galbin_{num_bi
 data_path = config.model.workdir + cosmo_dir
 os.makedirs(checkpoint_dir, exist_ok=True)
 os.makedirs(data_path, exist_ok=True)
+os.makedirs(data_path + '/inputs/', exist_ok=True)
+os.makedirs(data_path + '/labels/', exist_ok=True)
+os.makedirs(data_path + '/samples/', exist_ok=True)
 
 sigma_time = get_sigma_time(config.model.sigma_min, config.model.sigma_max)
 sample_time = get_sample_time(config.model.sampling_eps, config.model.T)
@@ -46,10 +55,10 @@ sample_time = get_sample_time(config.model.sampling_eps, config.model.T)
 
 scratch_ddir = f'/leonardo_scratch/large/userexternal/sgagnonh/diff_data/galbin_{num_bins}/'
 if task_id == 'training':
-    validation_dataset = GalaxyDataset(datadir=scratch_ddir, job_type=args.j, train_or_val='training', single_nf=0.7)
+    validation_dataset = GalaxyDataset(datadir=scratch_ddir, job_type=args.j, train_or_val='training', give_filenames=True)
     validation_loader = DataLoader(validation_dataset, config.sampling.batch_size, shuffle=False, num_workers=args.num_workers)
 elif task_id == 'validation':
-    validation_dataset = GalaxyDataset(datadir=scratch_ddir, job_type=args.j, train_or_val='validation', single_nf=0.7)
+    validation_dataset = GalaxyDataset(datadir=scratch_ddir, job_type=args.j, train_or_val='validation', give_filenames=True)
     validation_loader = DataLoader(validation_dataset, config.sampling.batch_size, shuffle=False, num_workers=args.num_workers)
 else:
     print('Invalid task_id')
@@ -92,22 +101,24 @@ def one_step(x, t):
     x, x_mean = sde.update_fn(x, t_vec, model_output=model_output)
     return x, x_mean
 
-input_data = validation_dataset[0][0].to(DEVICE)
-np.save(data_path + f'input_data_{task_id}.npy', np.array(input_data.clone().detach().cpu().numpy()))
-label_data = validation_dataset[0][1].to(DEVICE)
-np.save(data_path + f'label_data_{task_id}.npy', np.array(label_data.clone().detach().cpu().numpy()))
-input_data = torch.tile(input_data, dims=(config.sampling.batch_size, 1, 1, 1, 1))
-shape = (config.sampling.batch_size, 1, Nside, Nside, Nside)
+for datum in validation_dataset:
+    filename = validation_dataset[0][2]
+    input_data = validation_dataset[0][0].to(DEVICE)
+    np.save(data_path + f'inputs/{filename}_{task_id}.npy', np.array(input_data.clone().detach().cpu().numpy()))
+    label_data = validation_dataset[0][1].to(DEVICE)
+    np.save(data_path + f'labels/{filename}_{task_id}.npy', np.array(label_data.clone().detach().cpu().numpy()))
+    input_data = torch.tile(input_data, dims=(config.sampling.batch_size, 1, 1, 1, 1))
+    shape = (config.sampling.batch_size, 1, Nside, Nside, Nside)
 
-samples = []
-print('Sampling begins.')
-for j in tqdm(range(config.sampling.num_samples//config.sampling.batch_size)):
-    with torch.no_grad(), ema.average_parameters():
-        x = sde.prior_sampling(shape).to(DEVICE)
-        timesteps = sde.timesteps.to(DEVICE)
-        for i in tqdm(range(sde.N)):
-            t = timesteps[i]
-            x, x_mean = one_step(x, t)
-        samples.append(x_mean.detach().cpu().numpy())
-    np.save(data_path + f'sample_{task_id}.npy', np.array(samples))
-np.save(data_path + f'sample_{task_id}.npy', np.array(samples))
+    samples = []
+    print('Sampling begins.')
+    for j in tqdm(range(config.sampling.num_samples//config.sampling.batch_size)):
+        with torch.no_grad(), ema.average_parameters():
+            x = sde.prior_sampling(shape).to(DEVICE)
+            timesteps = sde.timesteps.to(DEVICE)
+            for i in tqdm(range(sde.N)):
+                t = timesteps[i]
+                x, x_mean = one_step(x, t)
+            samples.append(x_mean.detach().cpu().numpy())
+        np.save(data_path + f'samples/{filename}_{task_id}.npy', np.array(samples))
+    np.save(data_path + f'samples/{filename}_{task_id}.npy', np.array(samples))

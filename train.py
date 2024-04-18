@@ -9,7 +9,7 @@ torch.backends.cudnn.benchmark = True
 import os
 import logging
 from torch_ema import ExponentialMovingAverage
-from torch.optim import lr_scheduler
+# from torch.optim import lr_scheduler
 
 
 import argparse
@@ -115,7 +115,7 @@ def train_one_epoch(data_loader, model, optimizer, ema, train_or_val='training')
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), config.optim.grad_clip)
             optimizer.step()
-            scheduler.step(epoch + i / iters)
+            # scheduler.step(epoch + i / iters)
             ema.update()
         elif train_or_val == 'validation':
             with torch.no_grad():
@@ -143,7 +143,7 @@ optimizer = torch.optim.Adam(
         weight_decay=config.optim.weight_decay                   
         )
 # Assuming optimizer has been defined
-scheduler = lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=10)
+# scheduler = lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=10)
 ema = ExponentialMovingAverage(model.parameters(), decay=config.model.ema_rate)
 init_epoch = 0
 
@@ -163,11 +163,11 @@ init_epoch = 0
 
 # Build pytorch dataloaders and apply data preprocessing
 scratch_ddir = f'/leonardo_scratch/large/userexternal/sgagnonh/diff_data/galbin_{num_bins}/'
-# training_dataset = GalaxyDataset(datadir=scratch_ddir, job_type=args.j, train_or_val='training', single_nf=0.4)
-training_dataset = GalaxyDataset(datadir=scratch_ddir, job_type=args.j, train_or_val='training')
+training_dataset = GalaxyDataset(datadir=scratch_ddir, job_type=args.j, train_or_val='training', single_nf=0.4)
+# training_dataset = GalaxyDataset(datadir=scratch_ddir, job_type=args.j, train_or_val='training')
 training_loader = DataLoader(training_dataset, config.training.batch_size, shuffle=True, num_workers=args.num_workers)
-# validation_dataset = GalaxyDataset(datadir=scratch_ddir, job_type='galsmear', train_or_val='validation', single_nf=0.4)
-validation_dataset = GalaxyDataset(datadir=scratch_ddir, job_type='galsmear', train_or_val='validation')
+validation_dataset = GalaxyDataset(datadir=scratch_ddir, job_type='galsmear', train_or_val='validation', single_nf=0.4)
+# validation_dataset = GalaxyDataset(datadir=scratch_ddir, job_type='galsmear', train_or_val='validation')
 validation_loader = DataLoader(validation_dataset, config.training.batch_size, shuffle=True, num_workers=1)
 
 model.train(True)

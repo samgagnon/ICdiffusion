@@ -44,7 +44,7 @@ sample_time = get_sample_time(config.model.sampling_eps, config.model.T)
 # validation_dataset = GalaxyDataset(datadir='../diff_data/galaxies/', job_type='galsmear', train_or_val='validation')
 # validation_loader = DataLoader(validation_dataset, config.training.batch_size, shuffle=True, num_workers=1)
 
-scratch_ddir = f'/leonardo_scratch/large/userexternal/sgagnonh/diff_data/galbin_{num_bins}/'
+scratch_ddir = f'/projects/cosmo_database/sgagnon/diff_data/galbin_{num_bins}/'
 if task_id == 'training':
     validation_dataset = GalaxyDataset(datadir=scratch_ddir, job_type=args.j, train_or_val='training', single_nf=0.7)
     validation_loader = DataLoader(validation_dataset, config.sampling.batch_size, shuffle=False, num_workers=args.num_workers)

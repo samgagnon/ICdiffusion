@@ -162,7 +162,7 @@ init_epoch = 0
 
 
 # Build pytorch dataloaders and apply data preprocessing
-scratch_ddir = f'/leonardo_scratch/large/userexternal/sgagnonh/diff_data/galbin_{num_bins}/'
+scratch_ddir = f'/projects/cosmo_database/sgagnon/diff_data/galbin_{num_bins}/'
 training_dataset = GalaxyDataset(datadir=scratch_ddir, job_type=args.j, train_or_val='training', single_nf=0.4)
 # training_dataset = GalaxyDataset(datadir=scratch_ddir, job_type=args.j, train_or_val='training')
 training_loader = DataLoader(training_dataset, config.training.batch_size, shuffle=True, num_workers=args.num_workers)

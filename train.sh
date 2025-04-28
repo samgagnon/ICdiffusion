@@ -22,3 +22,4 @@ python train.py -j galsmear --num_workers 4 --num_bins 1
 python sample.py -j galsmear --num_workers 4 --num_bins 1 --task_id training
 python sample.py -j galsmear --num_workers 4 --num_bins 1 --task_id validation
 
+scp -r /scratch/* ./results/

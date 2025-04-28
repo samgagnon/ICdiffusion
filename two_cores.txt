@@ -1,0 +1,33 @@
+/leonardo/home/userexternal/sgagnonh/ddpm/lib/python3.10/site-packages/torch/utils/data/dataloader.py:557: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  warnings.warn(_create_warning_msg(
+0.007869243621826172 seconds to load data
+14
+/leonardo/home/userexternal/sgagnonh/ddpm/lib/python3.10/site-packages/torch/nn/modules/conv.py:605: UserWarning: Applied workaround for CuDNN issue, install nvrtc.so (Triggered internally at ../aten/src/ATen/native/cudnn/Conv_v8.cpp:80.)
+  return F.conv3d(
+tensor(78.9268) tensor(90.6733)
+tensor(0.3533) tensor(0.4780)
+torch.Size([2, 2, 128, 128, 128]) torch.Size([2, 1, 128, 128, 128])
+4.031771183013916 seconds to load first batch
+8.761940717697144 seconds to train first batch
+/leonardo/home/userexternal/sgagnonh/ddpm/lib/python3.10/site-packages/torch/utils/data/dataloader.py:557: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  warnings.warn(_create_warning_msg(
+0.006140708923339844 seconds to load data
+14
+/leonardo/home/userexternal/sgagnonh/ddpm/lib/python3.10/site-packages/torch/nn/modules/conv.py:605: UserWarning: Applied workaround for CuDNN issue, install nvrtc.so (Triggered internally at ../aten/src/ATen/native/cudnn/Conv_v8.cpp:80.)
+  return F.conv3d(
+tensor(41.0943) tensor(72.1559)
+tensor(0.2461) tensor(0.4307)
+torch.Size([2, 4, 128, 128, 128]) torch.Size([2, 1, 128, 128, 128])
+3.644615411758423 seconds to load first batch
+5.297186374664307 seconds to train first batch
+/leonardo/home/userexternal/sgagnonh/ddpm/lib/python3.10/site-packages/torch/utils/data/dataloader.py:557: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  warnings.warn(_create_warning_msg(
+0.006177425384521484 seconds to load data
+14
+/leonardo/home/userexternal/sgagnonh/ddpm/lib/python3.10/site-packages/torch/nn/modules/conv.py:605: UserWarning: Applied workaround for CuDNN issue, install nvrtc.so (Triggered internally at ../aten/src/ATen/native/cudnn/Conv_v8.cpp:80.)
+  return F.conv3d(
+tensor(26.2792) tensor(52.1293)
+tensor(0.3665) tensor(0.4819)
+torch.Size([2, 6, 128, 128, 128]) torch.Size([2, 1, 128, 128, 128])
+4.295534610748291 seconds to load first batch
+5.291654586791992 seconds to train first batch

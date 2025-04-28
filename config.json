@@ -1,7 +1,7 @@
 {
     "training": {
-        "batch_size": 2,
-        "n_epochs": 500,
+        "batch_size": 10,
+        "n_epochs": 2000,
         "likelihood_weighting": false,
         "reduce_mean": false,
         "sde": "vesde",
@@ -29,7 +29,7 @@
         "embedding_type": "fourier",
         "sampling_eps": 1e-5,
         "T": 1.0,
-        "workdir": "/leonardo_scratch/large/userexternal/sgagnonh/run/",
+        "workdir": "./run/",
         "ema_rate": 0.999,
         "normalization": "GroupNorm",
         "nonlinearity": "swish",
@@ -52,7 +52,8 @@
         "beta1": 0.9,
         "eps": 1e-8,
         "warmup": 5000,
-        "grad_clip": 1.0
+        "grad_clip": 1.0,
+        "momentum": 0.9
     },
     "seed": 42,
     "device": "cuda:0"

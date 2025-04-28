@@ -13,12 +13,14 @@ from torch.nn.parallel import DataParallel
 
 
 class GalaxyDataset(TensorDataset):
-    def __init__(self, datadir, job_type='galsmear', train_or_val='training', single_nf=False, transform=None):
+    def __init__(self, datadir, job_type='galsmear', train_or_val='training', single_nf=False, transform=None,\
+                 give_filenames=False):
         super().__init__()
         assert job_type in ['mean_std', 'galpure', 'galsmear']
         assert train_or_val in ['training', 'validation']
         # if transformations are desired, set them here
         self.transform = transform
+        self.give_filenames = give_filenames
         # initializes dataset locations
         self.muv_files = []
         self.lya_files = []
@@ -56,15 +58,15 @@ class GalaxyDataset(TensorDataset):
                 data_list[i] += [f'{dir_list[i]}{file}']
 
     def __getitem__(self, index):
-        muv = self.muv_files[index]
-        lya = self.lya_files[index]
-        labels = self.label_files[index]
-        muv = torch.from_numpy(np.stack(np.load(muv), axis=0))
-        lya = torch.from_numpy(np.stack(np.load(lya), axis=0))
-        labels = torch.from_numpy(np.stack(np.load(labels), axis=0))
+        muv_file = self.muv_files[index]
+        lya_file = self.lya_files[index]
+        labels_file = self.label_files[index]
+        muv = torch.from_numpy(np.stack(np.load(muv_file), axis=0))
+        lya = torch.from_numpy(np.stack(np.load(lya_file), axis=0))
+        labels = torch.from_numpy(np.stack(np.load(labels_file), axis=0))
         # unsqueeze channel dimension
-        muv = torch.unsqueeze(muv, dim=0)
-        lya = torch.unsqueeze(lya, dim=0)
+        # muv = torch.unsqueeze(muv, dim=0)
+        # lya = torch.unsqueeze(lya, dim=0)
         data = torch.cat((muv, lya), dim=0)
         labels = torch.unsqueeze(labels, dim=0)
         # convert datatype to float
@@ -73,7 +75,10 @@ class GalaxyDataset(TensorDataset):
         # apply transform if necessary
         if self.transform is not None:
             data = self.transform(data)
-        return data, labels
+        if self.give_filenames:
+            return data, labels, muv_file
+        else:
+            return data, labels
 
     def __len__(self):
         return len(self.muv_files)
@@ -97,11 +102,12 @@ if __name__ == '__main__':
     from argparse import ArgumentParser
     parser = ArgumentParser()
     parser.add_argument('--num_workers', type=int, default=1)
+    parser.add_argument('--num_bins', type=int, default=1)
     args = parser.parse_args()
     
     # create dataloaders
     t1 = time()
-    scratch_ddir = '/leonardo_scratch/large/userexternal/sgagnonh/diff_data/diff_data/galaxies/'
+    scratch_ddir = f'/leonardo_scratch/large/userexternal/sgagnonh/diff_data/galbin_{args.num_bins}/'
     training_dataset = GalaxyDataset(datadir=scratch_ddir, job_type='galsmear', train_or_val='training', single_nf=0.4)
     validation_dataset = GalaxyDataset(datadir=scratch_ddir, job_type='galsmear', train_or_val='validation', single_nf=0.4)
     training_loader = DataLoader(training_dataset, config.training.batch_size, shuffle=True, num_workers=args.num_workers)
@@ -121,6 +127,9 @@ if __name__ == '__main__':
         break
     t3 = time()
     print(f'{t3-t2} seconds to load first batch')
+
+    # modify config for testing
+    config.data.num_input_channels = int(args.num_bins * 2 + 1)
 
     # test network training
     model = DataParallel(UNet3DModel(config))

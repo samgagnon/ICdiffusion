@@ -1,0 +1,27 @@
+0.007132053375244141 seconds to load data
+14
+/leonardo/home/userexternal/sgagnonh/ddpm/lib/python3.10/site-packages/torch/nn/modules/conv.py:605: UserWarning: Applied workaround for CuDNN issue, install nvrtc.so (Triggered internally at ../aten/src/ATen/native/cudnn/Conv_v8.cpp:80.)
+  return F.conv3d(
+tensor(82.6838) tensor(94.2718)
+tensor(0.2751) tensor(0.4466)
+torch.Size([2, 2, 128, 128, 128]) torch.Size([2, 1, 128, 128, 128])
+3.4429116249084473 seconds to load first batch
+9.236752271652222 seconds to train first batch
+0.005834817886352539 seconds to load data
+14
+/leonardo/home/userexternal/sgagnonh/ddpm/lib/python3.10/site-packages/torch/nn/modules/conv.py:605: UserWarning: Applied workaround for CuDNN issue, install nvrtc.so (Triggered internally at ../aten/src/ATen/native/cudnn/Conv_v8.cpp:80.)
+  return F.conv3d(
+tensor(39.4008) tensor(70.3655)
+tensor(0.3693) tensor(0.4826)
+torch.Size([2, 4, 128, 128, 128]) torch.Size([2, 1, 128, 128, 128])
+2.942840576171875 seconds to load first batch
+5.406160116195679 seconds to train first batch
+0.005846500396728516 seconds to load data
+14
+/leonardo/home/userexternal/sgagnonh/ddpm/lib/python3.10/site-packages/torch/nn/modules/conv.py:605: UserWarning: Applied workaround for CuDNN issue, install nvrtc.so (Triggered internally at ../aten/src/ATen/native/cudnn/Conv_v8.cpp:80.)
+  return F.conv3d(
+tensor(26.7952) tensor(51.9311)
+tensor(0.3170) tensor(0.4653)
+torch.Size([2, 6, 128, 128, 128]) torch.Size([2, 1, 128, 128, 128])
+2.968886375427246 seconds to load first batch
+4.692671060562134 seconds to train first batch
